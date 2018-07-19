@@ -40,9 +40,9 @@ def createGeojson(data, name, imageLat, imageLong, pix, projection):
         if row['type']=='Polygon':
             if coords_pol[-1]!=coords_pol[0]:
                 coords_pol.append(coords_pol[0])
-            features.append(geojson.Feature(properties={'label': row['label'], 'filename': geofilename, 'Country':filenameData[0], 'City':filenameData[1], 'Image GeoCoordinates': [imageLat, imageLong], 'Pixel Coordinates': pix, 'Projection': projection}, geometry=geojson.Polygon([coords_pol])))
+            features.append(geojson.Feature(properties={'label': row['label'], 'filename': geofilename, 'country':filenameData[0], 'city':filenameData[1], 'image_geocoordinates': [imageLat, imageLong], 'pixel_coordinates': pix, 'projection': projection}, geometry=geojson.Polygon([coords_pol])))
         elif row['type']=='Line':
-            features.append(geojson.Feature(properties = {'label': row['label'], 'filename': geofilename, 'Country':filenameData[0], 'City':filenameData[1], 'Image GeoCoordinates': [imageLat, imageLong], 'Pixel Coordinates': pix, 'Projection': projection}, geometry=geojson.MultiLineString([coords_pol])))
+            features.append(geojson.Feature(properties = {'label': row['label'], 'filename': geofilename, 'country':filenameData[0], 'city':filenameData[1], 'image_geocoordinates': [imageLat, imageLong], 'pixel_coordinates': pix, 'projection': projection}, geometry=geojson.MultiLineString([coords_pol])))
         
     f_coll=geojson.FeatureCollection(features)
     
@@ -101,7 +101,12 @@ for f in tiffFiles:
         currentPoints = pointsList[index]
         currentType = typeList[index]
         currentLabel = labelList[index]
-            
+        
+        if(currentLabel == "RL"):
+            currentLabel = "OL"
+        if(currentLabel == "RT"):
+            currentLabel = "OT"
+          
         index = index + 1
 
         for point in currentPoints:
