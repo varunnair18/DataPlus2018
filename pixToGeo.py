@@ -27,8 +27,8 @@ import pandas as pd
 #run this is in the directory that contains both the tiff files and their associated json files
 tiffFiles = [f for f in os.listdir('.') if f.endswith(".tif")]
 
-def createGeojson(data, name, imageLat, imageLong, pix, projection):
-    col = ['coordinate', 'type', 'label']
+def createGeojson(data, name, ulx, uly,lrx,lry, projection):
+    col = ['coordinate', 'type', 'label', 'pix']
     df = pd.DataFrame(data, columns = col)
     
     geofilename = name + ".geojson"
@@ -40,9 +40,9 @@ def createGeojson(data, name, imageLat, imageLong, pix, projection):
         if row['type']=='Polygon':
             if coords_pol[-1]!=coords_pol[0]:
                 coords_pol.append(coords_pol[0])
-            features.append(geojson.Feature(properties={'label': row['label'], 'filename': geofilename, 'country':filenameData[0], 'city':filenameData[1], 'image_geocoordinates': [imageLat, imageLong], 'pixel_coordinates': pix, 'projection': projection}, geometry=geojson.Polygon([coords_pol])))
+            features.append(geojson.Feature(properties={'label': row['label'], 'filename': geofilename, 'country':filenameData[0], 'city':filenameData[1], 'image_geocoordinates_upper_left': [ulx, uly], 'image_geocoordinates_lower_right':[lrx,lry], 'pixel_coordinates': row['pix'], 'projection': projection}, geometry=geojson.Polygon([coords_pol])))
         elif row['type']=='Line':
-            features.append(geojson.Feature(properties = {'label': row['label'], 'filename': geofilename, 'country':filenameData[0], 'city':filenameData[1], 'image_geocoordinates': [imageLat, imageLong], 'pixel_coordinates': pix, 'projection': projection}, geometry=geojson.MultiLineString([coords_pol])))
+            features.append(geojson.Feature(properties = {'label': row['label'], 'filename': geofilename, 'country':filenameData[0], 'city':filenameData[1], 'image_geocoordinates_upper_left': [ulx, uly], 'image_geocoordinates_lower_right':[lrx,lry], 'pixel_coordinates': row['pix'], 'projection': projection}, geometry=geojson.MultiLineString([coords_pol])))
         
     f_coll=geojson.FeatureCollection(features)
     
@@ -106,15 +106,15 @@ for f in tiffFiles:
             currentLabel = "OL"
         if(currentLabel == "RT"):
             currentLabel = "OT"
-          
+        
         index = index + 1
 
         for point in currentPoints:
             x = ulx + pixelWidth*point[0]
             y = uly + pixelHeight*point[1]
             data1.append([x,y])
-        data.append([data1, currentType, currentLabel])
+        data.append([data1, currentType, currentLabel, currentPoints])
         data1 = []
         
     #dump data into geojson
-    createGeojson(data, name, ulx, uly, pointsList, image.GetProjection())
+    createGeojson(data, name, ulx, uly, lrx,lry, image.GetProjection())
