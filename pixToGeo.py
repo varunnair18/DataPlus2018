@@ -17,12 +17,14 @@ with the same name will be generated (example.geojson).
 from osgeo import gdal
 from osgeo import ogr
 from osgeo import osr
+import numpy as np
 from PIL import Image
 from geojson import Feature, LineString, FeatureCollection, Polygon, GeometryCollection
 import geojson
 import json
 import os
 import pandas as pd
+import scipy.interpolate
 
 #run this is in the directory that contains both the tiff files and their associated json files
 tiffFiles = [f for f in os.listdir('.') if f.endswith(".tif")]
@@ -49,6 +51,9 @@ def createGeojson(data, name, ulx, uly,lrx,lry, projection):
     with open(geofilename, 'w') as f:
         json.dump(f_coll,f, indent = 2)
 
+#bound pixel coordinates to the boundaries of the image (some annotations extend outside the boundaries)
+def minimaxshift(x):
+    return np.maximum(np.minimum(x,image.RasterXSize),0)
 
 for f in tiffFiles:
     name = f[:-4]
@@ -90,11 +95,20 @@ for f in tiffFiles:
     lrx = point2.GetX()
     lry = point2.GetY()
     
+    #corner of image
+    x_nw, y_nw, x_ne, y_ne, x_se, y_se, x_sw, y_sw = ulx, uly, lrx, uly, lrx, lry, ulx, lry
+    
+    #intialize the geo boundaries and pixel boundaries
+    values=[[x_nw, y_nw], [x_ne, y_ne], [x_se, y_se], [x_sw, y_sw]]
+    points=[[0,0], [0,image.RasterXSize], [image.RasterXSize,image.RasterXSize], [image.RasterXSize,0]]
+    
+    g=scipy.interpolate.LinearNDInterpolator(points=points, values=values)
+    
     pixelWidth = (lrx -ulx)/image.RasterXSize
     pixelHeight = (lry - uly)/image.RasterYSize
 
-    data1 = []
     data = []
+    old_coords = []
     
     #convert all pixel coordinates to geocoordinates 
     for w in pointsList:
@@ -109,12 +123,12 @@ for f in tiffFiles:
         
         index = index + 1
 
-        for point in currentPoints:
-            x = ulx + pixelWidth*point[0]
-            y = uly + pixelHeight*point[1]
-            data1.append([x,y])
-        data.append([data1, currentType, currentLabel, currentPoints])
-        data1 = []
+        for point in currentPoints:          
+            old_coords.append([point[1], point[0]])
+    
+        converted_coords=g(minimaxshift(np.array(old_coords)))
+        data.append([converted_coords.tolist(), currentType, currentLabel, currentPoints])
+        old_coords = []
         
     #dump data into geojson
     createGeojson(data, name, ulx, uly, lrx,lry, image.GetProjection())
