@@ -28,7 +28,7 @@ jsonFiles = [f for f in os.listdir('.') if f.endswith('.geojson')]
 for f in jsonFiles:
     imagePath = os.path.abspath(f[:-8] +".tif")
     data = geojson.load(open(f))
-    dict = {'objects': features['properties']['Pixel Coordinates'], 'type':[], 'label':[], 'width/height': [1300, 1300], 'lineColor':[], 'imagePath':imagePath}
+    dict = {'objects': [], 'type':[], 'label':[], 'width/height': [1300, 1300], 'lineColor':[], 'imagePath':imagePath}
     colordict = {}
     name = f[:-8]
     
@@ -43,6 +43,8 @@ for f in jsonFiles:
         
         label = features['properties']['label']
         dict['label'].append(label)
+        
+        dict['objects'].append(features['properties']['pixel_coordinates'])
         
         #generate random color to be associated with each label
         if features['properties']['label'] in colordict.keys():
