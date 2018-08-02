@@ -3,8 +3,8 @@ multiclassmask.py
 
 Within input folder, converts all CSV files of annotations into multiclass mask for input 
 into machine learning models.
-Outputs mask as tif and npz file, with options for other output formats
-Example terminal command: python multiclassmask.py folder_name/
+Outputs mask as tif and npz file
+Simply run the script ('python multiclassmask.py')
 
 Author: Xiaolan You & Artem Streltsov
 Group: Duke Data+ and Energy Initiative
@@ -63,14 +63,15 @@ def produce_mask(path):
 		if group['Type'].values[0]=='Polygon':
 			cc,rr=polygon(group['X'].values, group['Y'].values)
 			cc,rr=checkbounds(cc,rr,df['width'][0]-1,df['height'][0]-1)
-			img[rr,cc]=label_multiclass
+			img[cc,rr]=label_multiclass
 		elif group['Type'].values[0]=='Line':
 			for j in range(group.shape[0]-1):
 				r0, c0 = int(group['X'].values[j]), int(group['Y'].values[j])
 				r1, c1 = int(group['X'].values[j+1]), int(group['Y'].values[j+1])
 				cc,rr=line(r0, c0, r1, c1)
 				cc,rr=checkbounds(cc,rr,df['width'][0]-1,df['height'][0]-1)
-				img[rr,cc]=label_multiclass
+				img[cc,rr]=label_multiclass
+
 		else:
 			img[int(group['X']),int(group['Y'])]=label_multiclass
 
