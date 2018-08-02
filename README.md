@@ -39,3 +39,12 @@ Usage:
 To use the script, run 
 `$ unmerge_geojson.py examplefile.geojson`
 in your cmd. The examplefile.geojson is then unmerged.
+
+## multiclassmask.py
+Converts CSV file of annotations into multiclass mask for input into machine learning models
+Includes option to output mask as tif and/or npz file
+Simply run the script ('python multiclassmask.py')
+
+## mergeTiff.py
+Merges all tif files in given folder, using geo-coordinates, into a single image 'output.tif'
+Run with 'python mergeTiff.py folder_name/'
