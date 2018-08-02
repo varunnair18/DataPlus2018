@@ -1,9 +1,10 @@
 '''
 multiclassmask.py
 
-Converts CSV file of annotations into multiclass mask for input into machine learning models
-Includes option to output mask as tif and/or npz file
-Simply run the script ('python multiclassmask.py')
+Within input folder, converts all CSV files of annotations into multiclass mask for input 
+into machine learning models.
+Outputs mask as tif and npz file, with options for other output formats
+Example terminal command: python multiclassmask.py folder_name/
 
 Author: Xiaolan You & Artem Streltsov
 Group: Duke Data+ and Energy Initiative
@@ -29,6 +30,7 @@ labelencoder = {
 	'OL':6,
 	'SS':7
 }
+label_order = ['SS', 'OT', 'DT', 'TT', 'OL', 'DL', 'TL']
 
 def checkbounds(cc,rr,size_x, size_y):
     cc=np.maximum(np.minimum(cc,size_x),0)
@@ -38,7 +40,16 @@ def checkbounds(cc,rr,size_x, size_y):
 def produce_mask(path):
 	df=pd.read_csv(path)
 	img=np.zeros((df['width'][0], df['height'][0]))
-	for name,group in df.groupby('Object'):
+
+	df['temp_label']=pd.Categorical(
+		df['Label'],
+		categories=label_order,
+		ordered=True
+		)
+	df.sort_values('temp_label', inplace=True, kind='mergesort') # mergesort is stable algorithm
+																 # keeps points in the order they should
+ 
+	for name,group in df.groupby('Object', sort=False):
 		label=group['Label'].values[0]
 		# ---- following specific to this project ----
 		if label not in labelencoder.keys():
@@ -49,7 +60,6 @@ def produce_mask(path):
 		# ---------
 		else:
 			label_multiclass=labelencoder[label]
-
 		if group['Type'].values[0]=='Polygon':
 			cc,rr=polygon(group['X'].values, group['Y'].values)
 			cc,rr=checkbounds(cc,rr,df['width'][0]-1,df['height'][0]-1)
@@ -65,11 +75,10 @@ def produce_mask(path):
 			img[int(group['X']),int(group['Y'])]=label_multiclass
 
 	# to save as npz file
-	# np.savez_compressed(path[:-4], img)
-
+	np.savez_compressed(path[:-4], img)
 	# to save as tif file
 	Image.fromarray(img.astype(np.uint8)).save(path[:-4]+'_multiclass.tif')
-	# Image.fromarray(img.astype(np.uint8)*255/np.max(list(labelencoder.values()))).save(path[:-4]+'_multiclass_rgb.tif')
+	#Image.fromarray(img.astype(np.uint8)*255/np.max(list(labelencoder.values()))).save(path[:-4]+'_multiclass_rgb.tif')
 	
 	# to save as grayscale tif, can be modified to be multicolor tif
 	# stacked_img = np.stack((img,)*3, -1)
@@ -78,11 +87,18 @@ def produce_mask(path):
 
 if __name__ == '__main__':
 	import sys
-	app = QApplication(sys.argv)
-	dialogue=QFileDialog()
-	dialogue.setNameFilter("*.csv");
-	dialogue.setDefaultSuffix('csv')
-	dialogue.setFileMode(QFileDialog.ExistingFiles)
-	dialogue.exec()
-	path=dialogue.selectedFiles()
-	[produce_mask(p) for p in path]
+	import glob, os
+	# ---- following code allows one csv to be chosen for mask generation ----
+	# app = QApplication(sys.argv)
+	# dialogue=QFileDialog()
+	# dialogue.setNameFilter("*.csv");
+	# dialogue.setDefaultSuffix('csv')
+	# dialogue.setFileMode(QFileDialog.ExistingFiles)
+	# dialogue.exec()
+	# path=dialogue.selectedFiles()
+	# [produce_mask(p) for p in path]
+	# ---------
+	inputPath=sys.argv[1]
+	for f in [x for x in os.listdir(inputPath) if x.endswith('.csv')]:
+		print('Current file', f)
+		produce_mask(inputPath+f)
