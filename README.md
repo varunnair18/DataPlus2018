@@ -4,10 +4,7 @@ This repository contains supplementary scripts for the Energy Infrastructure Map
 ## Generating inputs for machine learning pipelines
 
 ### multiclassmask.py
-Converts CSV file of annotations into multiclass mask for input into machine learning models. Includes option to output mask as tif and/or npz file. Simply run the script: python multiclassmask.py
-
-### patching.py
-Script that splits all images from folder into patches of variable size. Also outputs csv with vectorized encoding of classes present in each patch as 'output.csv'. Example command: python patching.py test_image/ test_mask/ test_output/ 252
+Within input folder, converts all CSV files of annotations into multiclass mask for input into machine learning models. Outputs mask as tif and npz file, with options for other output formats. Example terminal command: python multiclassmask.py folder_name/
 
 ## Conversion between pixel- and geo-coordinates
 
