@@ -39,6 +39,9 @@ def checkbounds(cc,rr,size_x, size_y):
 
 def produce_mask(path):
 	df=pd.read_csv(path)
+	if (df.empty):
+		print('Empty csv file')
+		return
 	img=np.zeros((df['width'][0], df['height'][0]))
 
 	df['temp_label']=pd.Categorical(
