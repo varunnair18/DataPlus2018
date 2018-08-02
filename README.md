@@ -51,3 +51,7 @@ Cuts input tif into specified patches of specific size using gdal_translate. Dif
 
 ### mergeTiff.py
 Merges all tif files in given folder, using geo-coordinates, into a single image 'output.tif'. Run with: python mergeTiff.py folder_name/
+
+## Files used to create dataset
+### WorldView3_converter_folder.py
+Converts WorldView3 satellite imagery (SpaceNet images) into viewable format, scaled according to global max and min. Example run: python WorldView3_converter_folder.py input_folder/ output_folder/
